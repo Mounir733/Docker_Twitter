@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { authenticate } = require('./auth'); // import du fichier auth.js
+const jwt = require('jsonwebtoken');
 
 // création de l'application express
 const app = express();
@@ -64,6 +66,17 @@ sequelize.sync({ force: true }).then(() => {
   console.log('Base de données synchronisée !');
 });
 
+// définition d'une route pour créer un utilisateur
+app.post('/users', (req, res) => {
+  User.create({
+    username: req.body.username,
+    email: req.body.email,
+    password: req.body.password
+  }).then(user => {
+    res.json({ message: 'Utilisateur créé !' });
+  });
+});
+
 // définition d'une route pour récupérer tous les tweets
 app.get('/tweets', (req, res) => {
   Tweet.findAll({
@@ -73,13 +86,27 @@ app.get('/tweets', (req, res) => {
   });
 });
 
-// définition d'une route pour ajouter un tweet
+// // définition d'une route pour ajouter un tweet
+// app.post('/tweets', (req, res) => {
+//   Tweet.create({
+//     text: req.body.text,
+//     userId: req.body.userId
+//   }).then(tweet => {
+//     res.json({ message: 'Tweet créé !' });
+//   });
+// });
+
+// définition d'une route pour créer un tweet
 app.post('/tweets', (req, res) => {
   Tweet.create({
     text: req.body.text,
+    likes: 0, // par défaut
     userId: req.body.userId
   }).then(tweet => {
-    res.json({ message: 'Tweet créé !' });
+    res.json(tweet);
+  }).catch(error => {
+    console.error(error);
+    res.status(500).json({ error: 'Impossible de créer le tweet.' });
   });
 });
 
@@ -93,7 +120,24 @@ app.put('/tweets/:id/like', (req, res) => {
   });
 });
 
-// démarrage du serveur
-app.listen(3000, () => {
-  console.log('Serveur démarré sur le port 3000');
+// définition d'une route pour la connexion d'un utilisateur
+app.post('/login', (req, res) => {
+  User.findOne({
+    where: {
+      username: req.body.username,
+      password: req.body.password
+    }
+  }).then(user => {
+    if (!user) {
+      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
+    } else {
+      const token = jwt.sign({ userId: user.id }, 'secret', { expiresIn: '1h' });
+      res.json({ token });
+    }
+  }).catch(error => {
+    console.error(error);
+    res.status(500).json({ error: 'Impossible de se connecter.' });
+  });
 });
+
+

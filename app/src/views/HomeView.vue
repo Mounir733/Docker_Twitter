@@ -2,14 +2,18 @@
   import { twitterStore } from "../stores/twitter.js"
   import Tweet from "../components/Tweet.vue"
   import NewTweet from "../components/NewTweet.vue"
+  import AllTweet from "../components/AllTweet.vue"
+  import PostUser from "../components/PostUser.vue"
+  import PostTweet from "../components/PostTweet.vue"
   const twitter = twitterStore()
-
 
 
 
 </script>
 
 <template>
+  <PostTweet/>
+	<AllTweet/>
 
 
  <div>
@@ -52,11 +56,12 @@ draw
             <img src="../svg/messages.svg" class="sidebar-menu__item-icon" />
             Messages
           </div>
-
+          <RouterLink to="/signin">
           <div class="sidebar-menu__item">
             <img src="../svg/profile.svg" class="sidebar-menu__item-icon" />
             Profile
           </div>
+          </RouterLink>
 
           <div class="sidebar-menu__item">
             <img src="../svg/more.svg" class="sidebar-menu__item-icon" />
